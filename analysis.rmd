@@ -79,4 +79,12 @@ ggplot(groupTFvN, aes(x = PValue)) +
         y = "Frequency"
     ) +
     theme_classic(base_size = 14)
+ggsave("sample_data/Pvalue_Distribution.png", plot=last_plot() ,width=8, height=6)
+```
+
+```{r}
+# Save plots
+ggsave("sample_data/MA_TvT.png", plotMA(groupTvT, title="MA Plot: Transplant 2h vs Transplant 24h"), width=8, height=6)
+ggsave("sample_data/MA_TWOvN.png", plotMA(groupTWOvN, title="MA Plot: Transplant 2h vs Naive"), width=8, height=6)
+ggsave("sample_data/MA_TFvN.png", plotMA(groupTFvN, title="MA Plot: Transplant 24h vs Naive"), width=8, height=6)
 ```
