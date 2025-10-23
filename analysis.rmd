@@ -1,0 +1,82 @@
+
+```{r}
+library(edgeR)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Load pairwise comparison data from the paper
+# Most/least correlated not avaliable
+groupTvT <- read.csv("sample_data/koch_supplemental_table2.csv", row.names=1)
+head(groupTvT)
+
+groupTWOvN <- read.csv("sample_data/koch_supplemental_table3.csv", row.names=1)
+groupTFvN <- read.csv("sample_data/koch_supplemental_table4.csv", row.names=1)
+```
+
+```{r}
+# MA Plot
+plotMA <- function(df, title="MA Plot") {
+
+    # Column for up and down regulated genes
+    df <- df %>%
+        mutate(
+            direction = case_when(
+                FDR < 0.05 & logFC > 0 ~ "Up",
+                FDR < 0.05 & logFC < 0 ~ "Down",
+                TRUE ~ "NS"
+            )
+        )
+
+    # Count the number of significant up/down genes
+    sig_counts <- df %>%
+        filter(direction != "NS") %>%
+        count(direction)
+
+    ggplot(df, aes(x = logCPM, y = logFC)) +
+    geom_point(aes(color = direction), size = 1.2, alpha = 0.7) +
+    scale_color_manual(
+        values = c("Up" = "blue", "Down" = "red", "NS" = "black")
+    ) +
+    geom_hline(yintercept = 0, color = "black", linetype = "dashed") +
+    labs(
+        x = "Average expression (logCPM)",
+        y = "log2 Fold Change",
+        color = "Direction",
+        title = title
+    ) +
+    theme_classic(base_size = 14) +
+    # Add count annotations
+    annotate(
+        "text",
+        x = Inf, y = Inf,
+        label = paste0("Up: ", sig_counts$n[sig_counts$direction == "Up"]),
+        hjust = 1.1, vjust = 2, color = "blue", size = 5
+    ) +
+    annotate(
+        "text",
+        x = Inf, y = -Inf,
+        label = paste0("Down: ", sig_counts$n[sig_counts$direction == "Down"]),
+        hjust = 1.1, vjust = -1.2, color = "red", size = 5
+    )
+}
+```
+
+```{r}
+plotMA(groupTvT, title="MA Plot: Transplant 2h vs Transplant 24h")
+plotMA(groupTWOvN, title="MA Plot: Transplant 2h vs Naive")
+plotMA(groupTFvN, title="MA Plot: Transplant 24h vs Naive")
+```
+
+```{r}
+# Distribution of P values
+ggplot(groupTFvN, aes(x = PValue)) +
+    geom_histogram() +
+    labs(
+        title = "P-value Distribution: Transplant 2h vs Transplant 24h",
+        x = "P-value",
+        y = "Frequency"
+    ) +
+    theme_classic(base_size = 14)
+```
